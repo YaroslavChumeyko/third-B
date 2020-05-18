@@ -1,39 +1,42 @@
 from telegram.ext import MessageHandler, Filters
 
-import topics
+from bot_filter import text_filter
+
+from topics import topics
 
 
-def gram_dist(a, b): # Расстояние Дамерау-Левенштайна для анализа грам.ошибок
-    n, m = len(a), len(b)
-    if n > m:
-        a, b = b, a
-        n, m = m, n
-
-    current_column = range(n+1)
-    for i in range(1, m+1):
-        previous_column, current_column = current_column, [i]+[0]*n
-        for j in range(1, n + 1):
-            add, delete, change = previous_column[j] + 1, current_column[j-1] + 1, previous_column[j-1]
-            if a[j-1] != b[i-1]:
-                change += 1
-            current_column[j] = min(add, delete, change)
-
-    return current_column[n] / n
+def sign_complete(update, bot):
+    if update.message.text == 'Проект':
+        bot.bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Вы записаны'
+        )
 
 
-def text_reply(update, bot):
+def project_sign(update, bot):
     text_message = update.message.text
-    for greeting in topics.greet_list:
-        if gram_dist(greeting, text_message.lower()) <= 0.3:
-            return greetings(update, bot)
-    return bot.bot.sendMessage(chat_id=update.message.chat_id, text=text_message)
+    bot.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='Выберите проект'
+    )
+    bot.bot.sendMessage(
+        chat_id=update.message.chat_id,
+        text=text_message
+    )
 
 
 def greetings(update, bot):
     bot.bot.sendMessage(
         chat_id=update.message.chat_id,
-        text=f"Здравствуй, { update.message.from_user.first_name }"
+        text=f"<i>Здравствуй</i>, { update.message.from_user.first_name }"
         )
 
 
-text_handler = MessageHandler(Filters.text, text_reply)
+filter_handler = MessageHandler(filters=Filters.text, callback=text_filter)
+
+project_handler = MessageHandler(filters=Filters.regex('хочу записаться'), callback=project_sign)
+
+greet_user = MessageHandler(filters=Filters.text(topics['greeting']), callback=greetings)
+
+if __name__ == "__main__":
+    pass
