@@ -3,12 +3,12 @@ from telegram.ext import MessageHandler, \
 
 from bot_filter import text_filter
 
-from topics import topics
+import bot_topics
 
 import site_logic
 
 
-FIND = 0
+MENTORS, NEWS, ACHIEVEMENTS, COMPETITIONS = range(4)
 
 
 def sign_complete(update, bot):
@@ -46,13 +46,66 @@ def exit_command(update, bot):
     return ConversationHandler.END
 
 
-def mentors_call(update, bot):
-    bot_message = site_logic.mentors_names()
+# functions based on site information
+def do_mentors(update, bot):
+    bot_message = site_logic.find_info(
+        site_logic.url_path['mentors'],
+        bot_topics.mentors_info,
+        'name'
+    )
     bot.bot.sendMessage(
         chat_id=update.message.chat_id,
         text=bot_message
     )
-    return FIND
+    # for key in bot_topics.mentors_info.keys():
+    #     bot_topics.mentors_info[key] = []
+    return MENTORS
+
+
+def do_news(update, bot):
+    bot_message = site_logic.find_info(
+        site_logic.url_path['news'],
+        bot_topics.news_info,
+        'title'
+    )
+    bot.bot.sendMessage(
+        chat_id=update.message.chat_id,
+        text=bot_message
+    )
+    # for key in bot_topics.news_info.keys():
+    #     bot_topics.news_info[key] = []
+    return MENTORS
+
+
+def do_achievements(update, bot):
+    bot_message = site_logic.find_info(
+        site_logic.url_path['achievements'],
+        bot_topics.achievements_info,
+        'title'
+    )
+    bot.bot.sendMessage(
+        chat_id=update.message.chat_id,
+        text=bot_message
+    )
+    # Clear "mentors_info" for next usage
+    # for key in bot_topics.achievements_info.keys():
+    #     bot_topics.achievements_info[key] = []
+    return MENTORS
+
+
+def do_competitions(update, bot):
+    bot_message = site_logic.find_info(
+        site_logic.url_path['competitions'],
+        bot_topics.competitions_info,
+        'name'
+    )
+    bot.bot.sendMessage(
+        chat_id=update.message.chat_id,
+        text=bot_message
+    )
+    # for key in bot_topics.competitions_info.keys():
+    #     bot_topics.competitions_info[key] = []
+    return MENTORS
 
 
 def mentor_find(update, bot):
@@ -60,25 +113,42 @@ def mentor_find(update, bot):
     if user_message == 'выход':
         return exit_command(update, bot)
     name = update.message.text
-    bot_answer = site_logic.one_mentor(name)
+    bot_answer = site_logic.one_mentor(
+        name,
+        site_logic.url_path['mentors'],
+        bot_topics.mentors_info
+    )
     bot.bot.sendMessage(
         chat_id=update.message.chat_id,
         text=bot_answer
     )
-    return FIND
+    return MENTORS
 
 
 filter_handler = MessageHandler(filters=Filters.text, callback=text_filter)
-
 project_handler = MessageHandler(filters=Filters.regex('хочу записаться'), callback=project_sign)
+greet_user = MessageHandler(filters=Filters.text(bot_topics.topics['greeting']), callback=greetings)
 
-greet_user = MessageHandler(filters=Filters.text(topics['greeting']), callback=greetings)
-
-# mentors_info = MessageHandler(filters=Filters.text, callback=mentor_find)
-mentors = ConversationHandler(
-    entry_points=[CommandHandler(command='mentors', callback=mentors_call)],
+info = ConversationHandler(
+    entry_points=[
+        # mentors
+        CommandHandler(command='mentors', callback=do_mentors),
+        # news
+        CommandHandler(command='news', callback=do_news),
+        # news
+        CommandHandler(command='achieves', callback=do_achievements),
+        # news
+        CommandHandler(command='contests', callback=do_competitions)
+    ],
     states={
-        FIND: [MessageHandler(filters=Filters.text, callback=mentor_find)]
+        # show mentor
+        MENTORS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        # show news
+        NEWS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        # show achievement
+        ACHIEVEMENTS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        # show competition
+        COMPETITIONS: [MessageHandler(filters=Filters.text, callback=mentor_find)]
     },
     fallbacks=[
         CommandHandler(command='exit', callback=exit_command),

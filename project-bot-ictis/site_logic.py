@@ -3,6 +3,7 @@
 import csv
 import json
 import requests
+import bot_topics
 from bs4 import BeautifulSoup
 
 
@@ -45,39 +46,32 @@ def parse(html):
     return projects
 
 
-def parse_mentors(json_list):
-    all_mentors = {
-        'name': [],
-        'email': [],
-        'phone': [],
-        'post': [],
-        'directions': []
-    }
+def parse_info(json_list, nes_info):
     for i in range(len(json_list)):
-        all_mentors['name'].append(
-            ' '.join([json_list[i]['surname'], json_list[i]['name'], json_list[i]['patronymic']])
-        )
-        all_mentors['email'].append(json_list[i]['email'])
-        all_mentors['phone'].append(json_list[i]['phone'])
-        all_mentors['post'].append(json_list[i]['post'])
-        all_mentors['directions'].append(json_list[i]['directions'])
-    return all_mentors
+        for key in nes_info.keys():
+            if key == 'name':
+                SNP = ' '.join([json_list[i]['surname'], json_list[i]['name'], json_list[i]['patronymic']])
+                if SNP not in nes_info[key]:
+                    nes_info[key].append(SNP)
+            else:
+                if json_list[i][key] not in nes_info[key]:
+                    nes_info[key].append(json_list[i][key])
+    return nes_info
 
 
-def mentors_list():
-    mentors = json.loads(get_html(BASE_URL + url_path['mentors']))
-    mentors = parse_mentors(mentors)
+def mentors_list(section, nes_info):
+    mentors = parse_info(json.loads(get_html(BASE_URL + section)), nes_info)
     return mentors
 
 
-def mentors_names():
-    mentors = mentors_list()
-    bot_message = '-'+'\n-'.join(mentors['name'])
+def find_info(section, nes_info, out_info):
+    info = mentors_list(section, nes_info)
+    bot_message = '-'+'\n-'.join(info[out_info][::-1])
     return bot_message
 
 
-def one_mentor(name):
-    mentors = mentors_list()
+def one_mentor(name, section, nes_info):
+    mentors = mentors_list(section, nes_info)
     for i in range(len(mentors['name'])):
         if name in mentors['name'][i]:
             return "\n".join([j[i] for j in mentors.values()])
@@ -94,13 +88,10 @@ def save(projects, path):
 
 
 def main():
-    projects = json.loads(get_html(BASE_URL + url_path['mentors']))
-    projects = parse_mentors(projects)
-    for key, value in projects.items():
-        print(key, value)
-    a = one_mentor("Кучеров")
-    print(a)
+    projects = mentors_list(url_path['mentors'], bot_topics.mentors_info)
+    print(projects)
 
+    print(one_mentor('Кучеров', url_path['mentors'], bot_topics.mentors_info))
 
     # projects = parse(projects)
     # (projects)

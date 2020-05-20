@@ -1,6 +1,6 @@
 from pymorphy2 import MorphAnalyzer
 
-from topics import topics
+from bot_topics import topics
 
 
 def gram_dist(s1, s2): # Расстояние Дамерау-Левенштайна для анализа грам. ошибок

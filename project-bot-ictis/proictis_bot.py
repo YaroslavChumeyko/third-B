@@ -1,8 +1,7 @@
 from telegram import Bot
-from telegram.ext import Updater, Defaults, MessageHandler, \
-    ConversationHandler, CommandHandler, Filters
+from telegram.ext import Updater, Defaults
 
-from config import TOKEN, REQUEST_KWARGS
+from config import TOKEN
 
 import handlers
 
@@ -31,14 +30,13 @@ if __name__ == "__main__":
     )
     updater = Updater(
         bot=proictis_bot,
-        request_kwargs=REQUEST_KWARGS,
         use_context=True
     )
     dp = updater.dispatcher
 
-    # Now bot will
+    # Now bot'll know about handlers
     # dp.add_handler(handlers.filter_handler, group=0)
-    dp.add_handler(handlers.mentors, group=1)
+    dp.add_handler(handlers.info, group=1)
     dp.add_handler(handlers.project_handler, group=1)
     dp.add_handler(handlers.greet_user, group=1)
 
