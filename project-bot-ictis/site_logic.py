@@ -50,9 +50,9 @@ def parse_info(json_list, nes_info):
     for i in range(len(json_list)):
         for key in nes_info.keys():
             if key == 'name':
-                SNP = ' '.join([json_list[i]['surname'], json_list[i]['name'], json_list[i]['patronymic']])
-                if SNP not in nes_info[key]:
-                    nes_info[key].append(SNP)
+                snp = ' '.join([json_list[i]['surname'], json_list[i]['name'], json_list[i]['patronymic']])
+                if snp not in nes_info[key]:
+                    nes_info[key].append(snp)
             else:
                 if json_list[i][key] not in nes_info[key]:
                     nes_info[key].append(json_list[i][key])
@@ -60,7 +60,7 @@ def parse_info(json_list, nes_info):
 
 
 def mentors_list(section, nes_info):
-    mentors = parse_info(json.loads(get_html(BASE_URL + section)), nes_info)
+    mentors = parse_info(json.loads(get_html(BASE_URL + url_path[section])), nes_info)
     return mentors
 
 

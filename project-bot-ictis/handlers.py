@@ -8,9 +8,6 @@ import bot_topics
 import site_logic
 
 
-MENTORS, NEWS, ACHIEVEMENTS, COMPETITIONS = range(4)
-
-
 def sign_complete(update, bot):
     if update.message.text == 'Проект':
         bot.bot.send_message(
@@ -49,7 +46,7 @@ def exit_command(update, bot):
 # functions based on site information
 def do_mentors(update, bot):
     bot_message = site_logic.find_info(
-        site_logic.url_path['mentors'],
+        'mentors',
         bot_topics.mentors_info,
         'name'
     )
@@ -64,7 +61,7 @@ def do_mentors(update, bot):
 
 def do_news(update, bot):
     bot_message = site_logic.find_info(
-        site_logic.url_path['news'],
+        'news',
         bot_topics.news_info,
         'title'
     )
@@ -79,7 +76,7 @@ def do_news(update, bot):
 
 def do_achievements(update, bot):
     bot_message = site_logic.find_info(
-        site_logic.url_path['achievements'],
+        'achievements',
         bot_topics.achievements_info,
         'title'
     )
@@ -95,7 +92,7 @@ def do_achievements(update, bot):
 
 def do_competitions(update, bot):
     bot_message = site_logic.find_info(
-        site_logic.url_path['competitions'],
+        'competitions',
         bot_topics.competitions_info,
         'name'
     )
@@ -129,16 +126,22 @@ filter_handler = MessageHandler(filters=Filters.text, callback=text_filter)
 project_handler = MessageHandler(filters=Filters.regex('хочу записаться'), callback=project_sign)
 greet_user = MessageHandler(filters=Filters.text(bot_topics.topics['greeting']), callback=greetings)
 
+# Non-database information from site
+MENTORS, NEWS, ACHIEVEMENTS, COMPETITIONS = range(4)
 info = ConversationHandler(
     entry_points=[
         # mentors
         CommandHandler(command='mentors', callback=do_mentors),
+        MessageHandler(filters=Filters.regex('наставники'), callback=do_mentors),
         # news
         CommandHandler(command='news', callback=do_news),
+        MessageHandler(filters=Filters.regex('новости'), callback=do_news),
         # news
         CommandHandler(command='achieves', callback=do_achievements),
+        MessageHandler(filters=Filters.regex('достижения'), callback=do_achievements),
         # news
-        CommandHandler(command='contests', callback=do_competitions)
+        CommandHandler(command='contests', callback=do_competitions),
+        MessageHandler(filters=Filters.regex('конкурсы'), callback=do_competitions),
     ],
     states={
         # show mentor
