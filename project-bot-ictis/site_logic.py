@@ -95,7 +95,7 @@ def json_find_info(section: str, nes_info: dict, out_info: list):
 def json_one_subject(find_info: str, out_info: list, key: str, section: str, nes_info: dict):
     json_list = json_info_listing(section, nes_info)
     for subject in json_list:
-        if find_info in subject[key]:
+        if find_info in subject[key].lower().replace("ё", "е"):
             bot_message = "<b>" + str(subject[key]) + "</b>\n\n"
             for i in range(1, len(out_info)):
                 bot_message += nes_info[out_info[i]] + subject[out_info[i]] + "\n"

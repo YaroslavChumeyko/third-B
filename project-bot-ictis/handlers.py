@@ -83,7 +83,7 @@ def do_competitions(update, bot):
 
 # Detailed information from site
 def find_display(update, bot, out_info, key, section, nes_info):
-    user_message = update.message.text
+    user_message = update.message.text.lower()
     if user_message == 'выход':
         return exit_command(update, bot)
     bot_answer = site_logic.json_one_subject(
@@ -170,16 +170,16 @@ info = ConversationHandler(
     entry_points=[
         # mentors
         CommandHandler(command='mentors', callback=do_mentors),
-        MessageHandler(filters=Filters.regex('наставники'), callback=do_mentors),
+        MessageHandler(filters=Filters.regex('[нН]аставники'), callback=do_mentors),
         # news
         CommandHandler(command='news', callback=do_news),
-        MessageHandler(filters=Filters.regex('новости'), callback=do_news),
+        MessageHandler(filters=Filters.regex('[нН]овости'), callback=do_news),
         # news
         CommandHandler(command='achieves', callback=do_achievements),
-        MessageHandler(filters=Filters.regex('достижения'), callback=do_achievements),
+        MessageHandler(filters=Filters.regex('[дД]остижения'), callback=do_achievements),
         # news
         CommandHandler(command='contests', callback=do_competitions),
-        MessageHandler(filters=Filters.regex('конкурсы'), callback=do_competitions),
+        MessageHandler(filters=Filters.regex('[кК]онкурсы'), callback=do_competitions),
     ],
     states={
         # show mentor
