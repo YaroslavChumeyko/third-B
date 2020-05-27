@@ -1,31 +1,51 @@
 from telegram import Bot
-from telegram.ext import Updater
+from telegram.ext import Updater, Defaults
 
 from config import TOKEN
 
-from handlers import text_handler
+import handlers
 
 import logging
 
 
-def main():
-    print("Started")
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 
-    proictis_bot = Bot(
-        token=TOKEN
-    )
-    updater = Updater(
-        bot=proictis_bot,
-        use_context=True
-    )
-
-    updater.dispatcher.add_handler(text_handler)
-
-    updater.start_polling()
-    updater.idle()
+logger = logging.getLogger(__name__)
 
 
-if __name__ == '__main__':
-    main()
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
+
+
+if __name__ == "__main__":
+    try:
+        print("Started")
+
+        proictis_bot = Bot(
+            token=TOKEN,
+            defaults=Defaults(
+                parse_mode="HTML",
+            ),
+        )
+        updater = Updater(
+            bot=proictis_bot,
+            use_context=True
+        )
+        dp = updater.dispatcher
+
+        # Now bot'll know about handlers
+        # dp.add_handler(handlers.filter_handler, group=0)
+        dp.add_handler(handlers.info, group=1)
+        # dp.add_handler(handlers.project_handler, group=1)
+        dp.add_handler(handlers.greet_user, group=1)
+
+        dp.add_error_handler(error)
+
+        updater.start_polling()
+        updater.idle()
+
+    except KeyboardInterrupt:
+        print('Finished')
+
