@@ -1,31 +1,11 @@
-from telegram.ext import MessageHandler, \
-    ConversationHandler, CommandHandler, Filters
+from telegram.ext import MessageHandler
+from telegram.ext import ConversationHandler
+from telegram.ext import CommandHandler
+from telegram.ext import Filters
 
-from bot_filter import text_filter
-
+# from bot_filter import text_filter
 import bot_topics
-
 import site_logic
-
-
-def sign_complete(update, bot):
-    if update.message.text == 'Проект':
-        bot.bot.send_message(
-            chat_id=update.message.chat_id,
-            text='Вы записаны'
-        )
-
-
-def project_sign(update, bot):
-    text_message = update.message.text
-    bot.bot.send_message(
-        chat_id=update.message.chat_id,
-        text='Выберите проект'
-    )
-    bot.bot.sendMessage(
-        chat_id=update.message.chat_id,
-        text=text_message
-    )
 
 
 def greetings(update, bot):
@@ -44,86 +24,144 @@ def exit_command(update, bot):
 
 
 # functions based on site information
-def do_mentors(update, bot):
-    bot_message = site_logic.find_info(
-        'mentors',
-        bot_topics.mentors_info,
-        'name'
+# Bot displays site information overview
+def do_display(update, bot, section, nes_info, out_info):
+    bot_message = site_logic.json_find_info(
+        section=section,
+        nes_info=nes_info,
+        out_info=out_info
     )
     bot.bot.sendMessage(
         chat_id=update.message.chat_id,
         text=bot_message
     )
-    # for key in bot_topics.mentors_info.keys():
-    #     bot_topics.mentors_info[key] = []
+
+
+def do_mentors(update, bot):
+    do_display(
+        update=update,
+        bot=bot,
+        section='mentors',
+        nes_info=bot_topics.mentors_info,
+        out_info=['name']
+    )
     return MENTORS
 
 
 def do_news(update, bot):
-    bot_message = site_logic.find_info(
-        'news',
-        bot_topics.news_info,
-        'title'
+    do_display(
+        update=update,
+        bot=bot,
+        section='news',
+        nes_info=bot_topics.news_info,
+        out_info=['title', 'shortDescription']
     )
-    bot.bot.sendMessage(
-        chat_id=update.message.chat_id,
-        text=bot_message
-    )
-    # for key in bot_topics.news_info.keys():
-    #     bot_topics.news_info[key] = []
-    return MENTORS
+    return NEWS
 
 
 def do_achievements(update, bot):
-    bot_message = site_logic.find_info(
-        'achievements',
-        bot_topics.achievements_info,
-        'title'
+    do_display(
+        update=update,
+        bot=bot,
+        section='achievements',
+        nes_info=bot_topics.achievements_info,
+        out_info=['title', 'shortDescription']
     )
-    bot.bot.sendMessage(
-        chat_id=update.message.chat_id,
-        text=bot_message
-    )
-    # Clear "mentors_info" for next usage
-    # for key in bot_topics.achievements_info.keys():
-    #     bot_topics.achievements_info[key] = []
-    return MENTORS
+    return ACHIEVEMENTS
 
 
 def do_competitions(update, bot):
-    bot_message = site_logic.find_info(
-        'competitions',
-        bot_topics.competitions_info,
-        'name'
+    do_display(
+        update=update,
+        bot=bot,
+        section='competitions',
+        nes_info=bot_topics.competitions_info,
+        out_info=['title', 'deadline']
     )
-    bot.bot.sendMessage(
-        chat_id=update.message.chat_id,
-        text=bot_message
-    )
-    # for key in bot_topics.competitions_info.keys():
-    #     bot_topics.competitions_info[key] = []
-    return MENTORS
+    return COMPETITIONS
 
 
-def mentor_find(update, bot):
+# Detailed information from site
+def find_display(update, bot, out_info, key, section, nes_info):
     user_message = update.message.text
     if user_message == 'выход':
         return exit_command(update, bot)
-    name = update.message.text
-    bot_answer = site_logic.one_mentor(
-        name,
-        site_logic.url_path['mentors'],
-        bot_topics.mentors_info
+    bot_answer = site_logic.json_one_subject(
+        find_info=user_message,
+        out_info=out_info,
+        key=key,
+        section=section,
+        nes_info=nes_info
     )
     bot.bot.sendMessage(
         chat_id=update.message.chat_id,
         text=bot_answer
     )
-    return MENTORS
+    return "continue"
 
 
-filter_handler = MessageHandler(filters=Filters.text, callback=text_filter)
-project_handler = MessageHandler(filters=Filters.regex('хочу записаться'), callback=project_sign)
+def find_mentor(update, bot):
+    bot_answer = find_display(
+        update=update,
+        bot=bot,
+        out_info=list(bot_topics.mentors_info.keys()),
+        key='name',
+        section='mentors',
+        nes_info=bot_topics.mentors_info
+    )
+    if bot_answer == "continue":
+        return MENTORS
+    else:
+        return bot_answer
+
+
+def find_news(update, bot):
+    bot_answer = find_display(
+        update=update,
+        bot=bot,
+        out_info=['title', 'description'],
+        key='title',
+        section='news',
+        nes_info=bot_topics.news_info
+    )
+    if bot_answer == "continue":
+        return NEWS
+    else:
+        return bot_answer
+
+
+def find_achievement(update, bot):
+    bot_answer = find_display(
+        update=update,
+        bot=bot,
+        out_info=['title', 'description'],
+        key='title',
+        section='achievements',
+        nes_info=bot_topics.achievements_info
+    )
+    if bot_answer == "continue":
+        return ACHIEVEMENTS
+    else:
+        return bot_answer
+
+
+def find_competition(update, bot):
+    bot_answer = find_display(
+        update=update,
+        bot=bot,
+        out_info=['title', 'description'],
+        key='title',
+        section='competitions',
+        nes_info=bot_topics.competitions_info
+    )
+    if bot_answer == "continue":
+        return COMPETITIONS
+    else:
+        return bot_answer
+
+
+# filter_handler = MessageHandler(filters=Filters.text, callback=text_filter)
+# project_handler = MessageHandler(filters=Filters.regex('хочу записаться'), callback=project_sign)
 greet_user = MessageHandler(filters=Filters.text(bot_topics.topics['greeting']), callback=greetings)
 
 # Non-database information from site
@@ -145,13 +183,13 @@ info = ConversationHandler(
     ],
     states={
         # show mentor
-        MENTORS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        MENTORS: [MessageHandler(filters=Filters.text, callback=find_mentor)],
         # show news
-        NEWS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        NEWS: [MessageHandler(filters=Filters.text, callback=find_news)],
         # show achievement
-        ACHIEVEMENTS: [MessageHandler(filters=Filters.text, callback=mentor_find)],
+        ACHIEVEMENTS: [MessageHandler(filters=Filters.text, callback=find_achievement)],
         # show competition
-        COMPETITIONS: [MessageHandler(filters=Filters.text, callback=mentor_find)]
+        COMPETITIONS: [MessageHandler(filters=Filters.text, callback=find_competition)]
     },
     fallbacks=[
         CommandHandler(command='exit', callback=exit_command),

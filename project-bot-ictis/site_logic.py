@@ -1,7 +1,6 @@
 # Очень черновая версия!!!
 #!/usr/bin/env python3
 import csv
-import json
 import requests
 import bot_topics
 from bs4 import BeautifulSoup
@@ -14,7 +13,11 @@ url_path = {
     'projects': '/api/projects',
     'news': '/api/news',
     'competitions': '/api/competitions',
-    'achievements': '/api/achievements'
+    'achievements': '/api/achievements',
+    'login': 'api/login',
+    'requests': 'api/me/requests',
+    'archive': 'api/chat/archive',
+    'chats': 'api/chats'
 }
 
 
@@ -46,35 +49,57 @@ def parse(html):
     return projects
 
 
-def parse_info(json_list, nes_info):
+# Processing JSON object function block
+# Global overview functions
+def json_parse_info(json_list: dict, nes_info: dict):
     for i in range(len(json_list)):
-        for key in nes_info.keys():
+        for key in json_list[i].keys():
             if key == 'name':
-                snp = ' '.join([json_list[i]['surname'], json_list[i]['name'], json_list[i]['patronymic']])
-                if snp not in nes_info[key]:
-                    nes_info[key].append(snp)
-            else:
-                if json_list[i][key] not in nes_info[key]:
-                    nes_info[key].append(json_list[i][key])
-    return nes_info
+                try:
+                    json_list[i][key] = ' '.join([
+                        json_list[i]['surname'],
+                        json_list[i]['name'],
+                        json_list[i]['patronymic'],
+                    ])
+                except KeyError:
+                    pass
+        for key in reversed(sorted(json_list[i].keys())):
+            if key not in nes_info.keys():
+                del json_list[i][key]
+    return json_list
 
 
-def mentors_list(section, nes_info):
-    mentors = parse_info(json.loads(get_html(BASE_URL + url_path[section])), nes_info)
-    return mentors
+def json_info_listing(section: str, nes_info: dict):
+    json_list = requests.get(BASE_URL + url_path[section]).json()
+    info = json_parse_info(json_list, nes_info)
+    return info
 
 
-def find_info(section, nes_info, out_info):
-    info = mentors_list(section, nes_info)
-    bot_message = '-'+'\n-'.join(info[out_info][::-1])
-    return bot_message
+def json_find_info(section: str, nes_info: dict, out_info: list):
+    info = json_info_listing(section, nes_info)
+    if section == 'mentors':
+        bot_message = '-'+'\n-'.join([i[out_info[0]] for i in info])+'\n\n'
+    else:
+        bot_message = ""
+        n = len(info) - 1
+        for i in range(n, n-4, -1):
+            bot_message += ("<b>-%s</b>\n" % str(info[i][out_info[0]]))
+            try:
+                bot_message += ("\t%s\n\n" % str(info[i][out_info[1]]))
+            except IndexError:
+                bot_message += ("\t\n\n")
+    return bot_message + 'Напишите "выход", чтобы прервать текущее действие'
 
 
-def one_mentor(name, section, nes_info):
-    mentors = mentors_list(section, nes_info)
-    for i in range(len(mentors['name'])):
-        if name in mentors['name'][i]:
-            return "\n".join([j[i] for j in mentors.values()])
+# Single site-object inspection
+def json_one_subject(find_info: str, out_info: list, key: str, section: str, nes_info: dict):
+    json_list = json_info_listing(section, nes_info)
+    for subject in json_list:
+        if find_info in subject[key]:
+            bot_message = "<b>" + str(subject[key]) + "</b>\n\n"
+            for i in range(1, len(out_info)):
+                bot_message += nes_info[out_info[i]] + subject[out_info[i]] + "\n"
+            return bot_message.replace(3*'\n', 2*'\n')
 
 
 def save(projects, path):
@@ -87,11 +112,16 @@ def save(projects, path):
         writer.writerows(projects)
 
 
+# Test field :)
 def main():
-    projects = mentors_list(url_path['mentors'], bot_topics.mentors_info)
+    projects = json_find_info(
+        'news',
+        bot_topics.news_info,
+        ['title', 'shortDescription']
+    )
     print(projects)
 
-    print(one_mentor('Кучеров', url_path['mentors'], bot_topics.mentors_info))
+    print(json_one_subject('Кучеров', 'mentors', bot_topics.mentors_info))
 
     # projects = parse(projects)
     # (projects)

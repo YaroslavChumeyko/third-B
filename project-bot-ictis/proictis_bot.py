@@ -20,28 +20,32 @@ def error(update, context):
 
 
 if __name__ == "__main__":
-    print("Started")
+    try:
+        print("Started")
 
-    proictis_bot = Bot(
-        token=TOKEN,
-        defaults=Defaults(
-            parse_mode="HTML",
-        ),
-    )
-    updater = Updater(
-        bot=proictis_bot,
-        use_context=True
-    )
-    dp = updater.dispatcher
+        proictis_bot = Bot(
+            token=TOKEN,
+            defaults=Defaults(
+                parse_mode="HTML",
+            ),
+        )
+        updater = Updater(
+            bot=proictis_bot,
+            use_context=True
+        )
+        dp = updater.dispatcher
 
-    # Now bot'll know about handlers
-    # dp.add_handler(handlers.filter_handler, group=0)
-    dp.add_handler(handlers.info, group=1)
-    dp.add_handler(handlers.project_handler, group=1)
-    dp.add_handler(handlers.greet_user, group=1)
+        # Now bot'll know about handlers
+        # dp.add_handler(handlers.filter_handler, group=0)
+        dp.add_handler(handlers.info, group=1)
+        # dp.add_handler(handlers.project_handler, group=1)
+        dp.add_handler(handlers.greet_user, group=1)
 
-    dp.add_error_handler(error)
+        dp.add_error_handler(error)
 
-    updater.start_polling()
-    updater.idle()
+        updater.start_polling()
+        updater.idle()
+
+    except KeyboardInterrupt:
+        print('Finished')
 

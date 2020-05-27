@@ -9,35 +9,37 @@ topics = {
 
 }
 
-
+# Словари для извлечения необходимой для бота информации из JSON объекта
 mentors_info = {
-    'name': [],
-    'email': [],
-    'phone': [],
-    'post': [],
-    'directions': [],
+    'name': "",
+    'email': "<u>Почта</u>: ",
+    'phone': "<u>Телефон</u>: ",
+    'post': "<u>Должность</u>: ",
+    'directions': "<u>Направление</u>: ",
 }
 
 news_info = {
-    'title': [],
-    'description': [],
-    'shortDescription': [],
-    'createdAt': []
+    'title': "",
+    'shortDescription': "",
+    'description': "",
+    'createdAt': ""
 }
 
 achievements_info = {
-    'title': [],
-    'subtitle': [],
-    'description': [],
-    'organizers': []
+    'title': "",
+    'subtitle': "",
+    'description': "",
+    'shortDescription': ""
 }
 
 competitions_info = {
-    'title': [],
-    'subtitle': [],
-    'description': [],
-    'organizers': []
+    'title': "",
+    'deadline': "",
+    'description': "",
+    'shortDescription': "",
+    'organizers': ""
 }
+
 
 if __name__ == "__main__":
     pass
